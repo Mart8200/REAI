@@ -4,7 +4,7 @@ import openai
 import json
 
 # --- Setup ---
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])  # New client setup
 
 # --- Sample Preference Extraction ---
 def extract_preferences(user_input):
@@ -18,12 +18,12 @@ def extract_preferences(user_input):
         "features": ["...", "..."]
     }}
     """
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(  # Updated API call
         model="gpt-4-turbo",
         messages=[{"role": "user", "content": prompt}]
     )
     try:
-        return json.loads(response['choices'][0]['message']['content'])
+        return json.loads(response.choices[0].message.content)  # Updated response access
     except json.JSONDecodeError:
         st.error("Failed to parse AI response. Please try again.")
         return {"style": "", "features": []}
@@ -110,9 +110,4 @@ if user_input:
                     st.write(f"**Style:** {row['style']}")
                     st.write(f"**Features:** {row['features']}")
                     st.image(row['image'])
-                    st.markdown("---")
-            else:
-                st.warning("No strong matches found. Try rephrasing or simplifying your description.")
-
-        except Exception as e:
-            st.error(f"Something went wrong: {e}")
+                    st.markdown("---
