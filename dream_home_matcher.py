@@ -18,7 +18,7 @@ def extract_preferences(user_input):
     }}
     """
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-3.5turbo",
         messages=[{"role": "user", "content": prompt}]
     )
     return eval(response.choices[0].message.content)
@@ -37,4 +37,4 @@ def find_matches(user_prefs, df):
 st.set_page_config(page_title="Dream Home Matcher", layout="centered")
 st.title("🏡 Dream Home Matcher")
 
-st.markdown("Describe your dream home in natural language, and
+st.markdown("Describe your dream home in natural language, and we'll find matches just for you.")
