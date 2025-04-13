@@ -4,7 +4,9 @@ import openai
 import json
 
 # --- Setup ---
-client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])  # New client setup
+# Use the swisshacks-aoai-westeurope endpoint with the API key from Streamlit secrets
+openai_api_base = "https://swisshacks-aoai-westeurope.openai.azure.com/"
+client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"], base_url=openai_api_base)
 
 # --- Sample Preference Extraction ---
 def extract_preferences(user_input):
@@ -18,12 +20,12 @@ def extract_preferences(user_input):
         "features": ["...", "..."]
     }}
     """
-    response = client.chat.completions.create(  # Updated API call
+    response = client.chat.completions.create(
         model="gpt-4-turbo",
         messages=[{"role": "user", "content": prompt}]
     )
     try:
-        return json.loads(response.choices[0].message.content)  # Updated response access
+        return json.loads(response.choices[0].message.content)
     except json.JSONDecodeError:
         st.error("Failed to parse AI response. Please try again.")
         return {"style": "", "features": []}
@@ -32,7 +34,7 @@ def extract_preferences(user_input):
 def find_matches(user_prefs, df):
     def match_score(row):
         style_score = 1 if user_prefs['style'].lower() in row['style'].lower() else 0
-        row_features = row['features'].split('|')  # Split string into list
+        row_features = row['features'].split('|')
         feature_score = sum([1 for f in user_prefs['features'] if f in row_features])
         return style_score * 2 + feature_score
 
@@ -47,8 +49,8 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-color: #800080;  /* Purple background */
-        color: white;  /* Ensure text is readable */
+        background-color: #800080;
+        color: white;
     }
     </style>
     """,
@@ -58,14 +60,14 @@ st.markdown(
 st.title("🏡 Dream Home Matcher")
 st.markdown("Describe your dream home in natural language, and we'll find matches just for you.")
 
-# Ensure the text input field is visible with a placeholder
+# Text input
 user_input = st.text_input(
     label="What does your dream house look like?",
     placeholder="e.g., A modern villa with a pool and mountain view",
     key="dream_home_input"
 )
 
-# Sample listing data (replace with real data or API call)
+# Sample listing data
 sample_data = pd.DataFrame([
     {
         'id': 1,
@@ -100,7 +102,6 @@ if user_input:
     with st.spinner("Analyzing your preferences with AI..."):
         try:
             prefs = extract_preferences(user_input)
-            # Safely handle the preferences display
             style = prefs.get('style', 'Unknown')
             features = prefs.get('features', [])
             features_str = ', '.join(features) if features else 'None'
