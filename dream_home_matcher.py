@@ -100,7 +100,11 @@ if user_input:
     with st.spinner("Analyzing your preferences with AI..."):
         try:
             prefs = extract_preferences(user_input)
-            st.markdown(f"**Interpreted Preferences:** Style = `{prefs['style']}` | Features = `{', '.join(prefs['features'])}`")
+            # Safely handle the preferences display
+            style = prefs.get('style', 'Unknown')
+            features = prefs.get('features', [])
+            features_str = ', '.join(features) if features else 'None'
+            st.markdown(f"**Interpreted Preferences:** Style = `{style}` | Features = `{features_str}`")
             matches = find_matches(prefs, sample_data)
 
             if not matches.empty:
@@ -110,4 +114,9 @@ if user_input:
                     st.write(f"**Style:** {row['style']}")
                     st.write(f"**Features:** {row['features']}")
                     st.image(row['image'])
-                    st.markdown("---
+                    st.markdown("---")
+            else:
+                st.warning("No strong matches found. Try rephrasing or simplifying your description.")
+
+        except Exception as e:
+            st.error(f"Something went wrong: {e}")
